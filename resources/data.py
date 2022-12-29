@@ -1,4 +1,3 @@
-import anndata as ad
 import numpy as np
 from torch.utils.data import Dataset, DataLoader
 
@@ -45,15 +44,10 @@ class MultiomeDataset(Dataset):
         x_atac = torch.tensor(self.csr_atac[index,:].todense())
         return {'gex':x_gex, 'atac':x_atac, 'cell_type':self.cell_type[index]}
   
-def get_dataloaders(gex_train, atac_train, cell_type_train,  gex_val, atac_val, cell_type_val):
+def get_dataloaders(gex, atac, cell_type):
+
+    dataset = MultiomeDataset(gex, atac, cell_type)
+    data = DataLoader(dataset, config.BATCH_SIZE, shuffle = True, num_workers = config.NUM_WORKERS)
+
+    return data
     
-    # mod2_train = mod2_train.iloc[sol_train.values.argmax(1)]
-    # mod2_test = mod2_test.iloc[sol_test.values.argmax(1)]
-    
-    dataset_train = MultiomeDataset(gex_train, atac_train, cell_type_train)
-    data_train = DataLoader(dataset_train, config.BATCH_SIZE, shuffle = True, num_workers = config.NUM_WORKERS)
-    
-    dataset_val = MultiomeDataset(gex_val, atac_val, cell_type_val)
-    data_val = DataLoader(dataset_val, config.BATCH_SIZE, shuffle = False, num_workers = config.NUM_WORKERS)
-    
-    return data_train, data_val

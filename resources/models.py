@@ -348,7 +348,15 @@ class bidirectTripletLoss(nn.Module):
         loss_2 = self.cross_entropy_loss(score_mat.T, target.to(config.DEVICE))
 
         return 0.5 * (loss_1 + loss_2)
+        
+    def cellMatchingProb(self, score_mat):
 
+        score_norm_gex = score_mat.softmax(dim = 0)
+        score_norm_atac = score_mat.softmax(dim = 1)
+
+        match_probs = 0.5 * (torch.diagonal(score_norm_gex) + torch.diagonal(score_norm_atac))
+        return torch.mean(match_probs)
+        
     def cellTypeMatchingProbRow(self, score_mat, cell_type):
 
         # Collect list of index list for each cell type
@@ -370,13 +378,13 @@ class bidirectTripletLoss(nn.Module):
 
         return ct_match_prob
 
-    def cellTypeMatchingProb(self, score_mat, cell_type):
+    def cellTypeMatchingProb(self, score_mat, cell_type): # NS's method
         row = self.cellTypeMatchingProbRow(score_mat, cell_type) # Softmax on rows (normalize GEX)
         col = self.cellTypeMatchingProbRow(score_mat.T, cell_type) # Softmax on cols (normalize ATAC) 
         
         return 0.5 * (row + col)
 
-    # def cellTypeMatchingProb(self, score_mat, cell_type):
+    # def cellTypeMatchingProb(self, score_mat, cell_type): # XF's method
 
     #     # Compute matching probs for each cell type
     #     idx_in_type = collections.defaultdict(list)
@@ -403,7 +411,7 @@ class bidirectTripletLoss(nn.Module):
         # print(score_mat); print(cell_type)
         ct_match_prob = self.cellTypeMatchingProb(score_mat, cell_type)
 
-        return loss.to(config.DEVICE), loss_triplet, loss_cross, ct_match_prob
+        return loss.to(config.DEVICE), loss_triplet, loss_cross, ct_match_prob, cell_match_prob
 
 
 
