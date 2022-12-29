@@ -410,6 +410,7 @@ class bidirectTripletLoss(nn.Module):
         loss = loss_triplet + loss_cross
         # print(score_mat); print(cell_type)
         ct_match_prob = self.cellTypeMatchingProb(score_mat, cell_type)
+        cell_match_prob = self.cellMatchingProb(score_mat)
 
         return loss.to(config.DEVICE), loss_triplet, loss_cross, ct_match_prob, cell_match_prob
 
