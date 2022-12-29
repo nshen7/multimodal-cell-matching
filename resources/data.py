@@ -48,6 +48,7 @@ def get_dataloaders(gex, atac, cell_type):
 
     dataset = MultiomeDataset(gex, atac, cell_type)
     data = DataLoader(dataset, config.BATCH_SIZE, shuffle = True, num_workers = config.NUM_WORKERS)
+    # data = DataLoader(dataset, config.BATCH_SIZE, shuffle = False, num_workers = config.NUM_WORKERS)
 
     return data
     
