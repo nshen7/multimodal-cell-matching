@@ -357,49 +357,49 @@ class bidirectTripletLoss(nn.Module):
         match_probs = 0.5 * (torch.diagonal(score_norm_gex) + torch.diagonal(score_norm_atac))
         return torch.mean(match_probs)
         
-    def cellTypeMatchingProbRow(self, score_mat, cell_type):
+    # def cellTypeMatchingProbRow(self, score_mat, cell_type):
 
-        # Collect list of index list for each cell type
-        idx_in_type = collections.defaultdict(list)
-        for i, x in enumerate(cell_type):
-            idx_in_type[x].append(i)
-
-        # Compute matching probs for each cell type
-        score_mat_norm = score_mat.softmax(dim = 0)
-        probs = []
-        for idx in idx_in_type.values():
-            prob_type = 0
-            for i in idx:
-                prob_type += score_mat_norm[i, idx].sum()
-            probs.append(prob_type / len(idx)) 
-
-        # Take average of matching prob from cell types
-        ct_match_prob = torch.tensor(probs).mean()
-
-        return ct_match_prob
-
-    def cellTypeMatchingProb(self, score_mat, cell_type): # NS's method
-        row = self.cellTypeMatchingProbRow(score_mat, cell_type) # Softmax on rows (normalize GEX)
-        col = self.cellTypeMatchingProbRow(score_mat.T, cell_type) # Softmax on cols (normalize ATAC) 
-        
-        return 0.5 * (row + col)
-
-    # def cellTypeMatchingProb(self, score_mat, cell_type): # XF's method
-
-    #     # Compute matching probs for each cell type
+    #     # Collect list of index list for each cell type
     #     idx_in_type = collections.defaultdict(list)
     #     for i, x in enumerate(cell_type):
     #         idx_in_type[x].append(i)
 
-    #     sum_score_mat = torch.zeros(len(idx_in_type.values()),len(idx_in_type.values()))
-    #     for i, dx in enumerate(idx_in_type.values()):
-    #       for j, dx2 in enumerate(idx_in_type.values()):
-    #         tem = score_mat[np.ix_(dx, dx2)].sum()
-    #         sum_score_mat[i,j] = tem
+    #     # Compute matching probs for each cell type
+    #     score_mat_norm = score_mat.softmax(dim = 0)
+    #     probs = []
+    #     for idx in idx_in_type.values():
+    #         prob_type = 0
+    #         for i in idx:
+    #             prob_type += score_mat_norm[i, idx].sum()
+    #         probs.append(prob_type / len(idx)) 
 
-    #     score_mat_norm = 0.5 * (sum_score_mat.softmax(dim = 0) + sum_score_mat.softmax(dim = 1))
-    #     # print('sum_score_mat:\n', sum_score_mat)
-    #     return torch.mean(torch.diagonal(score_mat_norm))
+    #     # Take average of matching prob from cell types
+    #     ct_match_prob = torch.tensor(probs).mean()
+
+    #     return ct_match_prob
+
+    # def cellTypeMatchingProb(self, score_mat, cell_type): # NS's method
+    #     row = self.cellTypeMatchingProbRow(score_mat, cell_type) # Softmax on rows (normalize GEX)
+    #     col = self.cellTypeMatchingProbRow(score_mat.T, cell_type) # Softmax on cols (normalize ATAC) 
+        
+    #     return 0.5 * (row + col)
+
+    def cellTypeMatchingProb(self, score_mat, cell_type): # XF's method
+
+        # Compute matching probs for each cell type
+        idx_in_type = collections.defaultdict(list)
+        for i, x in enumerate(cell_type):
+            idx_in_type[x].append(i)
+
+        sum_score_mat = torch.zeros(len(idx_in_type.values()),len(idx_in_type.values()))
+        for i, dx in enumerate(idx_in_type.values()):
+          for j, dx2 in enumerate(idx_in_type.values()):
+            tem = score_mat[np.ix_(dx, dx2)].sum()
+            sum_score_mat[i,j] = tem
+
+        score_mat_norm = 0.5 * (sum_score_mat.softmax(dim = 0) + sum_score_mat.softmax(dim = 1))
+        # print('sum_score_mat:\n', sum_score_mat)
+        return torch.mean(torch.diagonal(score_mat_norm))
 
     def forward(self, gex_out_0, gex_out_1, atac_out_0, atac_out_1, cell_type):
       
